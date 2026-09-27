@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: media-backend
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/media}
+    username: ${POSTGRES_USER:media}
+    password: ${POSTGRES_PASSWORD:media}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+  servlet:
+    multipart:
+      max-file-size: ${UPLOAD_MAX_FILE_SIZE:500MB}
+      max-request-size: ${UPLOAD_MAX_REQUEST_SIZE:501MB}
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: never
+    include-stacktrace: never
+    include-binding-errors: never
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+media:
+  ffmpeg-path: ${FFMPEG_PATH:ffmpeg}
+  ffprobe-path: ${FFPROBE_PATH:ffprobe}
+  snapshot-timeout: ${SNAPSHOT_TIMEOUT:15s}
+  probe-timeout: ${PROBE_TIMEOUT:20s}
+  max-concurrent-processes: ${MEDIA_MAX_CONCURRENT_PROCESSES:4}
+  rtsp:
+    transport: ${RTSP_TRANSPORT:tcp}
+  hls:
+    segment-duration: ${HLS_SEGMENT_DURATION:2}
+    playlist-size: ${HLS_PLAYLIST_SIZE:5}
+    startup-timeout: ${HLS_STARTUP_TIMEOUT:10s}
+    stop-timeout: ${HLS_STOP_TIMEOUT:3s}
+    max-streams: ${HLS_MAX_STREAMS:4}
+storage:
+  root: ${STORAGE_ROOT:./data}

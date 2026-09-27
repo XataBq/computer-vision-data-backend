@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-media}
+      POSTGRES_USER: ${POSTGRES_USER:-media}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-media}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  backend:
+    build: .
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-media}
+      POSTGRES_USER: ${POSTGRES_USER:-media}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-media}
+      STORAGE_ROOT: /app/data
+      UPLOAD_MAX_FILE_SIZE: ${UPLOAD_MAX_FILE_SIZE:-500MB}
+      UPLOAD_MAX_REQUEST_SIZE: ${UPLOAD_MAX_REQUEST_SIZE:-501MB}
+      SNAPSHOT_TIMEOUT: ${SNAPSHOT_TIMEOUT:-15s}
+      PROBE_TIMEOUT: ${PROBE_TIMEOUT:-20s}
+      MEDIA_MAX_CONCURRENT_PROCESSES: ${MEDIA_MAX_CONCURRENT_PROCESSES:-4}
+      RTSP_TRANSPORT: ${RTSP_TRANSPORT:-tcp}
+      HLS_SEGMENT_DURATION: ${HLS_SEGMENT_DURATION:-2}
+      HLS_PLAYLIST_SIZE: ${HLS_PLAYLIST_SIZE:-5}
+      HLS_STARTUP_TIMEOUT: ${HLS_STARTUP_TIMEOUT:-10s}
+      HLS_STOP_TIMEOUT: ${HLS_STOP_TIMEOUT:-3s}
+      HLS_MAX_STREAMS: ${HLS_MAX_STREAMS:-4}
+    ports:
+      - "127.0.0.1:${PORT:-8080}:8080"
+    volumes:
+      - media-data:/app/data
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 40s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
+volumes:
+  postgres-data:
+  media-data:
